@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Grid Chart with Recent Search</title>
+  <style>
+    :root{
+      --bg: #0b1220;
+      --panel: #0f172a;
+      --panel-2: #111827;
+      --grid: #cbd5e1;      /* হালকা গ্রে গ্রিড লাইন */
+      --cell: #ffffff;      
+      --cell-alt: #ffffff;  
+      --text: #000000;      
+      --muted: #6b7280;
+      --accent: #22c55e;
+      --danger: #ef4444;
+      --head: #10b981;
+      --outline: #334155;
+    }
+    body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui}
+    .wrap{max-width:1100px;margin:40px auto;padding:24px;background:var(--panel);border-radius:20px}
+    table{border-collapse:collapse;width:100%; box-shadow:0 0 10px rgba(0,0,0,0.3); border-radius:10px; overflow:hidden;}
+    th, td{
+      padding:4px;            /* রো চাপানো */
+      font-size:14px;         /* মোট font size */
+      border:1px solid var(--grid);
+      text-align:center;
+      vertical-align:middle;
+    }
+    thead th{background:var(--panel-2);color:var(--head)}
+    tbody tr:nth-child(odd) td{background:var(--cell); color:var(--text);}
+    tbody tr:nth-child(even) td{background:var(--cell-alt); color:var(--text);}
+    .cell-wrap{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:6px;
+    }
+    .nums{
+      display:flex;
+      flex-direction:column;
+      font-weight:bold;
+      color:var(--muted);
+    }
+    .nums span{
+      font-size:12px;          /* উপরের/নিচের সংখ্যা বড় */
+    }
+    .mark{font-size:16px;font-weight:bold;color:var(--text)} /* মূল ভ্যালু বড় */
+    .eq{font-size:16px;font-weight:bold;color:var(--head)}   /* = সাইন বড় */
+    .search-box{margin-bottom:20px;text-align:center}
+    .search-box input{
+      padding:8px 12px;
+      border:1px solid var(--outline);
+      border-radius:8px;
+      width:200px;
+      font-size:14px;
+    }
+    .result{
+      margin-top:20px;
+      padding:12px;
+      background:var(--panel-2);
+      border-radius:10px;
+      text-align:center;
+      color:#fff;
+      font-size:16px;
+      font-weight:bold;
+    }
+    .recent-searches{
+      display:flex;
+      gap:10px;
+      flex-wrap: wrap;
+      margin-top:15px;
+      justify-content:center;
+    }
+    .recent-box{
+      position:relative;
+      padding:6px 12px;
+      border-radius:8px;
+      font-weight:bold;
+      min-width:80px;
+      text-align:center;
+      background: var(--accent);
+      color:#fff;
+      cursor:pointer;
+      transition: background 0.3s;
+      font-size:14px;
+    }
+    .recent-box.red{background: var(--danger);}
+    .image-grid{
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      gap:15px;
+      margin-top:40px
+    }
+	
+	
+	
+	@media (max-width: 768px) {
+  table {
+    font-size:12px;
+  }
+  th, td {
+    padding:2px;
+  }
+  .cell-wrap {
+    gap:2px;
+  }
+  .nums span {
+    font-size:10px;
+  }
+  .mark, .eq {
+    font-size:12px;
+  }
+  .wrap {
+    padding:10px;
+  }
+}
+
+	
+	
+	
+	
+	<style>
+.image-grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr); /* ডেস্কটপে ৪টি কলাম */
+  gap:15px;
+  margin-top:40px;
+}
+
+.image-grid img{
+  width:100%;
+  border-radius:10px;
+  border:2px solid var(--grid);
+}
+
+@media (max-width: 768px) {
+  .image-grid {
+    grid-template-columns: repeat(2, 1fr); /* মোবাইলে এক লাইনে ২টি ইমেজ */
+  }
+}
+
+@media (max-width: 480px) {
+  .image-grid {
+    grid-template-columns: 1fr; /* ছোট ফোনে এক লাইনে ১টি ইমেজ */
+  }
+}
+</style>  <!-- একবারই style শেষ হবে -->
+
+</head>
+<body>
+<!-- স্ক্রলিং মার্কেট রিসার্চ লেখা -->
+<div style="overflow:hidden; white-space:nowrap; width:100%; background:#fbbf24; color:#000; font-weight:bold; font-size:16px; padding:10px 0; text-align:center; position:relative;">
+  <span style="display:inline-block; padding-left:100%; animation:scrollText 15s linear infinite;">
+    চার্ট সব সময় কাজ করেনা তাই একই দিনের আগের মার্কেট রিসার্চ করুন। আপনি নতুন হয়ে থাকলে জয়েন করুন এ ক্লিক করে জয়েন করুন। আমাদের VIP গ্রুপে ফ্রি সিগনাল পেতে টেলিগ্রামে জয়েন করুন।
+  </span>
+</div>
+
+<style>
+@keyframes scrollText {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-100%); }
+}
+</style>
+
+  <div class="wrap">
+
+    <!-- Search Box -->
+    <div class="search-box">
+      <input type="text" id="searchInput" placeholder="যেমন 11, 47, 66 লিখুন" />
+      <div id="result" class="result">রেজাল্ট এখানে আসবে</div>
+      <div class="recent-searches" id="recentSearches"></div>
+    </div>
+
+    <!-- Grid Chart -->
+    <table id="gridTable">
+      <thead>
+        <tr>
+          <th>0</th><th>1</th><th>2</th><th>3</th><th>4</th>
+          <th>5</th><th>6</th><th>7</th><th>8</th><th>9</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+<!-- Telegram & Register Buttons (ইনলাইন CSS) -->
+<div style="display:flex; justify-content:center; gap:15px; margin:20px 0;">
+  <a href="https://t.me/techmareya" target="_blank" 
+     style="padding:10px 20px; border-radius:8px; background:#0088cc; color:#fff; font-weight:bold; text-decoration:none; text-align:center; display:inline-block; min-width:120px;">
+     Telegram
+  </a>
+  <a href="https://dkwin9.com/#/register?invitationCode=36217816377" target="_blank" 
+     style="padding:10px 20px; border-radius:8px; background:#22c55e; color:#fff; font-weight:bold; text-decoration:none; text-align:center; display:inline-block; min-width:120px;">
+     Register
+  </a>
+</div>
+<div style="margin-top:15px; text-align:center; font-family:sans-serif; line-height:1.4;">
+  <p style="margin:0; font-size:16px; font-weight:500; color:#FFFFFF;">
+    আমাদের সিগনালে যদি আপনার লস হয় তাহলে রিকোভারি করে দেওয়া হবে।
+  </p>
+  <p style="margin:5px 0 0; font-size:12px; color:#FFFFFF;">
+    শর্ত: আমাদের টিমে থাকতে হবে
+  </p>
+</div>
+
+    <!-- নিচে ৪টা ইমেজের জায়গা -->
+    <!-- নিচে ৪টা ইমেজের জায়গা -->
+<div class="image-grid">
+  <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgTIydLo9CFP6P9x-tyKIGGdjZQqtNjzj8_S5y6Lpk1b_Swj2fyz6dGnfs2SWPwcvcb9adTAx1TEEzByOVjIl707HZntzWQwqambdXOXuFg2IkgB8ZHZw9oE0Ugl-lbhIX8MFHu2k_BazoWUiiHb5ExXefv5dNVv9wvH7D88tde8oMWh5lProNItYUmA3kg/s1600/@geldspot%20(12).png" alt="Image 1">
+  <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgIfwn38owsNZflfGZe-clFlCLkVfkW_sbnGyCvjSr6hZLRXjOZIdx0hG0-P3G1OJM6mw0xwNCF5aVj7yM2ZBEpoZrjPLi4I6f7Kqh7ucIie8O_0MN6zAUH8fO0VMRtRChf7WIO8ARtF4F46CuOwPV-UcWiqHq-hZsooXIc0AzgHdVPA3ZUSn8T2NCezjHz/s1600/@geldspot%20(11).png" alt="Image 2">
+  <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiYiv4M1FGMCDhR7-j_HXj5If954JP6Xc_GeicjZo9xl7basRut2-_4VhgaY9PbT3eOKOsb5m6qedTv8xkRVMGVtpP16J5rgECW6s2WSY_-c90jduhGEXMcVz5wV61FtLWXHbhImrUpyBH5N7jxfiZGbcdCa7SW-HuNJ6NG-PPrjTCSq6rkL3WU4RkcXVwQ/s1600/@geldspot%20(10).png" alt="Image 3">
+  <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEg5IDQYvK3tcoxec5AhZHxlTLmWiCj-_qO2OqRdNXQrHBgVYADo5gazOL0ONtnCDxsdUeERmUN1jXdgIF92qnDJl1XhEGK-8kHHNL3SsaKV4JG3Q-FVQEBXuVOGFwdKL1v5aUtnuLAhHl8AjIq7EKkoITMP8rYjrqcyMRRuQBkrW_oC0V7uj2VgeLY_RC3V/s1600/@geldspot%20(9).png alt="Image 4">
+</div>
+
+  <div class="image-grid">
+  <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEh4Nl-uuY81b5mHGjp3cA4zmYycyiEOzYS6Vx8s8baMAEWeD0rULQHRO31J8I1Z2sgO01w0TsMPbivGcB0pM0HnwXxGTUynSpYjB-JW7tZxOwKKrF1D_gT7We6FqFRSDuCUjWrtWIxyXTWOgdgSN4V_UhPf53EjmTXjASA3Ms0gbYxzDssEtpN0LGBINNtr/s1600/@geldspot%20(8).png" alt="Image 1">
+  <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhEhs_pwi8TWif9C4LVdOu7k3hJYDp0nQ5g0q_nDY_5R03_40mMnRwUMY7mz3VEPmEVvp9nTklltebcsC3e1K7K5GOvWtWV-q4BCSqTQKLOlr4WT4rERGzdBFkuSFvEH_Cg0oercN9LXyMieQ5DKalrM7MHL32Did9a2yEPZnIs7IsaUeD154oupwKc1SUD/s1600/@geldspot%20(7).png" alt="Image 2">
+  <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEg3vGvay6NHcZKXZT9x7TRzZKZA_r3-WkeMv5jb4HzzL3JFIsFWXpR541xRmFBCyWdTiZyk8Kku6kCl_qF3_fOn6NlzZ3B5N4LHis3zBewCKABNKOz3NnepDEftikhUwNXNdOpLeMuXKqyKdptWZxrfAYd4Q1V50MrfMPnFcsVBPKlJ9CWpuHj4RQU5lol2/s1600/@geldspot%20(6).png" alt="Image 3">
+  <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEg8pt6E3L2LqjkV2RIQZzIu2j75RnBhwsBHV8EE8cyeZDCvCHP-ylkKAordSDAlYJYPG5erL0bKg-rtnWnHsaOsFb0PKrzcsZROzwo8nRoEQeku4a9WuU29LfxUbloGkiwwQi6a8m4FtevI0R_FmM5KiAfaodPdNTRa3e-RNdK4u4FNl1ODjFHjLSozkZLU/s1600/@geldspot%20(5).pngImage 4">
+</div>
+  <div class="image-grid">
+  <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhg1YeXkdTJR-wLxeabjlj6eid637LTAJF3fZ5VO2dhEBzOe4xywIrQTf94SKVh0nb2pQYQGvHyw_I4a0rPhExnSJWEwsFvfauJ86Ah6KQbWHgLd8AFFy5Pa4BEvScTcnH2cje81FBj7N308_c8_NT0zgGoNimvSpobVHGVKDwB1A2r7vY-qjbZGiLiAIjd/s1600/@geldspot%20(4).png" alt="Image 1">
+  <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhEhs_pwi8TWif9C4LVdOu7k3hJYDp0nQ5g0q_nDY_5R03_40mMnRwUMY7mz3VEPmEVvp9nTklltebcsC3e1K7K5GOvWtWV-q4BCSqTQKLOlr4WT4rERGzdBFkuSFvEH_Cg0oercN9LXyMieQ5DKalrM7MHL32Did9a2yEPZnIs7IsaUeD154oupwKc1SUD/s1600/@geldspot%20(7).png" alt="Image 2">
+  <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEg3vGvay6NHcZKXZT9x7TRzZKZA_r3-WkeMv5jb4HzzL3JFIsFWXpR541xRmFBCyWdTiZyk8Kku6kCl_qF3_fOn6NlzZ3B5N4LHis3zBewCKABNKOz3NnepDEftikhUwNXNdOpLeMuXKqyKdptWZxrfAYd4Q1V50MrfMPnFcsVBPKlJ9CWpuHj4RQU5lol2/s1600/@geldspot%20(6).png" alt="Image 3">
+  <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEg8pt6E3L2LqjkV2RIQZzIu2j75RnBhwsBHV8EE8cyeZDCvCHP-ylkKAordSDAlYJYPG5erL0bKg-rtnWnHsaOsFb0PKrzcsZROzwo8nRoEQeku4a9WuU29LfxUbloGkiwwQi6a8m4FtevI0R_FmM5KiAfaodPdNTRa3e-RNdK4u4FNl1ODjFHjLSozkZLU/s1600/@geldspot%20(5).pngImage 4">
+</div>
+
+
+<script>
+// রাইট-ক্লিক নিষিদ্ধ
+document.addEventListener("contextmenu", function(e){
+  e.preventDefault();
+  alert("Right click বন্ধ করা আছে 🚫");
+});
+
+// কীবোর্ড শর্টকাট নিষিদ্ধ (Ctrl+U, Ctrl+C, Ctrl+Shift+I ইত্যাদি)
+document.addEventListener("keydown", function(e){
+  // Ctrl+U (View Source)
+  if(e.ctrlKey && e.key.toLowerCase() === "u"){
+    e.preventDefault();
+    alert("View Source বন্ধ 🚫");
+  }
+  // Ctrl+C (Copy)
+  if(e.ctrlKey && e.key.toLowerCase() === "c"){
+    e.preventDefault();
+    alert("Copy বন্ধ 🚫");
+  }
+  // F12 (Dev Tools)
+  if(e.key === "F12"){
+    e.preventDefault();
+    alert("Inspect বন্ধ 🚫");
+  }
+  // Ctrl+Shift+I (Inspect Shortcut)
+  if(e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "i"){
+    e.preventDefault();
+    alert("Inspect Shortcut বন্ধ 🚫");
+  }
+});
+</script>
+
+  <script>
+  const tbody = document.querySelector("#gridTable tbody");
+  const searchInput = document.getElementById("searchInput");
+  const resultBox = document.getElementById("result");
+  const recentBox = document.getElementById("recentSearches");
+
+  let dataMap = {};
+  let recentSearches = [];
+
+  const customData = {
+    "00":"B",   "01":"B",   "02":"S",   "03":"B",   "04":"S",   "05":"S",   "06":"B",   "07":"S",   "08":"S",   "09":"B",
+    "10":"S",   "11":"S",   "12":"S",   "13":"S",   "14":"B",   "15":"S",   "16":"B",   "17":"B",   "18":"S",   "19":"S",
+    "20":"S",   "21":"B",   "22":"B",   "23":"B",   "24":"S",   "25":"B",   "26":"S",   "27":"B",   "28":"S",   "29":"S",
+    "30":"B",   "31":"B",   "32":"B",   "33":"B",   "34":"S",   "35":"S",   "36":"S",   "37":"B",   "38":"S",   "39":"S",
+    "40":"B",   "41":"B",   "42":"B",   "43":"B",   "44":"S",   "45":"B",   "46":"B",   "47":"B",   "48":"s",   "49":"S",
+    "50":"B",   "51":"B",   "52":"S",   "53":"S",   "54":"B",   "55":"S",   "56":"S",   "57":"S",   "58":"B",   "59":"B",
+    "60":"B",   "61":"S",   "62":"S",   "63":"B",   "64":"s",   "65":"B",   "66":"B",   "67":"S",   "68":"s",   "69":"s",
+    "70":"B",   "71":"S",   "72":"B",   "73":"S",   "74":"S",   "75":"B",   "76":"B",   "77":"B",   "78":"S",   "79":"S",
+    "80":"B",   "81":"S",   "82":"B",   "83":"B",   "84":"B",   "85":"B",   "86":"S",   "87":"B",   "88":"B",   "89":"S",
+    "90":"B",   "91":"S",   "92":"S",   "93":"B",   "94":"B",   "95":"B",   "96":"B",   "97":"S",   "98":"B",   "99":"S"
+  };
+
+  for (let r = 0; r < 9; r++) {
+    let tr = document.createElement("tr");
+    for (let c = 0; c < 10; c++) {
+      let td = document.createElement("td");
+
+      const topDigit = c;
+      const bottomDigit = (r + 1) % 10;
+      const key = `${topDigit}${bottomDigit}`;
+
+      const value = customData[key] || "-";
+      dataMap[key] = value;
+
+      td.innerHTML = `
+        <div class="cell-wrap">
+          <div class="nums">
+            <span>${topDigit}</span>
+            <span>${bottomDigit}</span>
+          </div>
+          <span class="eq">=</span>
+          <span class="mark">${value}</span>
+        </div>
+      `;
+      tr.appendChild(td);
+    }
+    tbody.appendChild(tr);
+  }
+
+  function renderRecent(){
+    recentBox.innerHTML = "";
+    recentSearches.forEach(item=>{
+      const div = document.createElement("div");
+      div.className = "recent-box";
+      div.textContent = `${item.key} = ${item.value}`;
+      div.addEventListener("click", function(){
+        div.classList.toggle("red");
+      });
+      recentBox.appendChild(div);
+    });
+  }
+
+  searchInput.addEventListener("input", function(){
+    const val = this.value.trim();
+    if (val in dataMap) {
+      resultBox.innerHTML = `<strong>${val}</strong> = ${dataMap[val]}`;
+      const item = { key: val, value: dataMap[val] };
+      recentSearches.unshift(item);
+      if (recentSearches.length > 9) recentSearches = recentSearches.slice(0, 9);
+      renderRecent();
+    } else {
+      resultBox.innerHTML = "রেজাল্ট পাওয়া যায়নি";
+    }
+  });
+  
+  
+  
+  
+  
+  function renderRecent(){
+  recentBox.innerHTML = "";
+  recentSearches.forEach((item, i)=>{
+    const div = document.createElement("div");
+    div.className = "recent-box";
+    if(item.colored) div.classList.add("red"); // যদি আগে লাল করা থাকে আবার লাল হবে
+    div.textContent = `${item.key} = ${item.value}`;
+    div.addEventListener("click", function(){
+      item.colored = !item.colored;   // স্টেট টগল করে রাখি
+      div.classList.toggle("red");
+    });
+    recentBox.appendChild(div);
+  });
+}
+
+</script>
+
+</body>
+</html>
